@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Neural network</title>
+    <script src="main.js"></script>
+    <script src="neuralNetwork.js"></script>
+    <script src="rules.js"></script>
+    <script src="sigmoidAndMath.js"></script>
+</head>
+
+<body>
+    <p>Number of inputs: <input id="numInputs" type="number" min="1" value="2" step="1" /></p>
+    <p id="numOutputs">Number of outputs: 0</p>
+    <p>Select rule to predict:
+        <select id="selectRule">
+            <option value="0">Output is equal to first bit</option>
+            <option value="1">Output is AND between first and last bits</option>
+            <option value="2">XOR gate between first and last bits (low precision)</option>
+            <option value="3">Output 0 is first bit, output 1 is last bit</option>
+            <option value="4">Output is 1 if all bits in even position (0-based) are 1</option>
+            <option value="5">Outputs are the exact bits in the same order</option>
+            <option value="6">All bits are logically negated</option>
+            <option value="7">Output array is (input array) concatenated at (input array reversed)</option>
+            <option value="8">Output is OR game between all inputs</option>
+        </select>
+    </p>
+    <p>Train <input id="numTrainings" type="number" min="1" value="100000" step="1" /> times</p>
+    <button onclick="main()">Train</button>
+    <p id="errorMessage" style="color: red;"></p>
+    <br><br>
+    <table id="tableWeigths">
+    </table>
+
+    <ul id="latestTraining">
+
+    </ul>
+</body>
+<style>
+    table {
+        border: 2px solid black;
+        background-color: cornsilk;
+    }
+
+    th,
+    tr,
+    td {
+        border: 1px solid black;
+    }
+</style>
+
+</html>
