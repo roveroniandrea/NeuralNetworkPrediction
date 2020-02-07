@@ -8,36 +8,53 @@
     <title>Neural network</title>
     <script src="main.js"></script>
     <script src="neuralNetwork.js"></script>
+    <script src="multiLayerNetwork.js"></script>
     <script src="rules.js"></script>
     <script src="sigmoidAndMath.js"></script>
+    <script src="multiLayerMain.js"></script>
 </head>
 
 <body>
+    <p>Neural network type:
+        <select id="networkType">
+            <option value="0">Single Layer Perceptron (no hidden neurons)</option>
+            <option value="1">Multi Layer Perceptron (one layer of hidden neurons)</option>
+        </select>
+    </p>
+    <pre><b>Single Layer Perceptron:</b> this is the simplest neural network.
+        It consists in just input neurons (called input layer) and output neurons (called output layer).
+        The SLP works by adjusting the weigths between input neurons and output neurons
+<b>Multi Layer Perceptron:</b> it's a SLP with some hidden neurons between input and output layers.
+    In this project, the MLP has revealed very more powerful the SLP. Recommended hidden layer count is 8-10
+    </pre>
     <p>Number of inputs: <input id="numInputs" type="number" min="1" value="2" step="1" /></p>
+    <p>Number of hidden neurons (only affects Multi Layer Perceptron): <input id="numHiddenNeurons" type="number"
+            min="1" value="3" step="1" /></p>
     <p id="numOutputs">Number of outputs: 0</p>
     <p>Select rule to predict:
         <select id="selectRule">
             <option value="0">Output is equal to first bit</option>
             <option value="1">Output is AND between first and last bits</option>
-            <option value="2">XOR gate between first and last bits (low precision)</option>
+            <option value="2">XOR gate between first and last bits (low precision for SLP)</option>
             <option value="3">Output 0 is first bit, output 1 is last bit</option>
             <option value="4">Output is 1 if all bits in even position (0-based) are 1</option>
             <option value="5">Outputs are the exact bits in the same order</option>
             <option value="6">All bits are logically negated</option>
             <option value="7">Output array is (input array) concatenated at (input array reversed)</option>
             <option value="8">Output is OR game between all inputs</option>
+            <option value="9">Output is the sum of first half inputs and last half inputs treated as unsigned binary
+                numbers (low precision for SLP)</option>
+            <option value="10">Inputs are left shifted by 1 if less significant bit is 0, by 2 if it's 1</option>
         </select>
     </p>
     <p>Train <input id="numTrainings" type="number" min="1" value="100000" step="1" /> times</p>
-    <button onclick="main()">Train</button>
+    <button onclick="main()">Generate and train</button>
+    <button onclick="randomInput()">Test with random input (no training)</button>
     <p id="errorMessage" style="color: red;"></p>
-    <br><br>
+    <ul id="randomInput"></ul>
+    <pre id="multiLayerPrecision"></pre>
     <table id="tableWeigths">
     </table>
-
-    <ul id="latestTraining">
-
-    </ul>
 </body>
 <style>
     table {

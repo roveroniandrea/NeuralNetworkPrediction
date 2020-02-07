@@ -34,7 +34,7 @@ class NeuralNetwork {
 
     train(errors, inputs, outputs) {
         //console.log('errors: ', errors, 'inputs: ', inputs, 'outputs: ', outputs);
-        let derivativeEvaluation = derivativeSigmoidFunction(outputs)
+        let derivativeEvaluation = derivativeSigmoidFunctionArray(outputs)
         for (let i = 0; i < outputs.length; i++) {
             for (let j = 0; j < inputs.length; j++) {
                 //console.log('Correggo di ', derivativeEvaluation[i])
@@ -49,7 +49,7 @@ class NeuralNetwork {
             let inputAndExpected = generateRandomInput(this.inputWeigths[0].length, currentRule);
             //console.log(inputAndExpected);
             let evaluated = this.outputNeuronsEvaluate(inputAndExpected.input);
-            let predicted = sigmoidFunction(evaluated);
+            let predicted = sigmoidFunctionArray(evaluated);
             let errors = calculateErrors(inputAndExpected.expected, predicted);
             let localErrors = 0.0;
             for (let j = 0; j < errors.length; j++) {

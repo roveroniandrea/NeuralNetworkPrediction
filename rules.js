@@ -7,7 +7,9 @@ const rules = {
     EXACT_BITS: 5,
     BITS_NEGATE: 6,
     PING_PONG_INPUT: 7,
-    CONCATENATED_OR_GATE: 8
+    CONCATENATED_OR_GATE: 8,
+    SUM_HALF_INPUTS: 9,
+    BITSHIF_LEFT: 10
 }
 
 function generateRandomInput(length, rule) {
@@ -129,6 +131,40 @@ function generateRandomInput(length, rule) {
                 expected: [(expected ? 1 : 0)]
             };
         }
+        case rules.SUM_HALF_INPUTS: {
+            let input = [];
+            for (let i = 0; i < length; i++) {
+                input[i] = Math.random() < 0.5 ? 0 : 1;
+            }
+            let expectedDecimal = fromBitArrayToDecimal(input.slice(0, input.length / 2)) + fromBitArrayToDecimal(input.slice(input.length / 2, input.length));
+            return {
+                input: input,
+                expected: fromDecToBinArray(expectedDecimal, (input.length / 2) + 1)
+            }
+        }
+        case rules.BITSHIF_LEFT:{
+            let input = [];
+            let expected = [];
+            for (let i = 0; i < length; i++) {
+                input[i] = Math.random() < 0.5 ? 0 : 1;
+                expected[i] = input[i];
+            }
+            if(input[input.length - 1] == 1){
+                //bitshift of 2
+                expected[expected.length] = 0;
+                expected[expected.length] = 0;
+            }
+            else{
+                //bitshift of 1
+                expected.unshift([0]);
+                expected[expected.length] = 0;
+            }
+
+            return {
+                input: input,
+                expected: expected
+            };
+        }
         default: {
             throw 'Rule generation not implemented';
         }
@@ -168,6 +204,13 @@ function assignAndValidateRule(value, numberInputNeurons) {
         case rules.CONCATENATED_OR_GATE: {
             return rules.CONCATENATED_OR_GATE;
         }
+        case rules.SUM_HALF_INPUTS: {
+            if (numberInputNeurons % 2 == 1) { throw 'Input neurons must be pair' }
+            return rules.SUM_HALF_INPUTS;
+        }
+        case rules.BITSHIF_LEFT:{
+            return rules.BITSHIF_LEFT;
+        }
         default: {
             throw 'Rule validation not implemented';
         }
@@ -200,8 +243,14 @@ function correctNumberOfOutputs(rule, numberInputNeurons) {
         case rules.PING_PONG_INPUT: {
             return numberInputNeurons * 2;
         }
-        case rules.CONCATENATED_OR_GATE:{
+        case rules.CONCATENATED_OR_GATE: {
             return 1;
+        }
+        case rules.SUM_HALF_INPUTS:{
+            return (numberInputNeurons / 2) + 1;
+        }
+        case rules.BITSHIF_LEFT:{
+            return numberInputNeurons + 2;
         }
         default: {
             throw 'Output setting not implemented';
