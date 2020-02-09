@@ -2,29 +2,58 @@ class MultiLayerNetwork {
     constructor(numInputNeurons, numHiddenNeurons, numOutputNeurons) {
         //TODO: gestire neurone di bias (attenzione agli array di lunghezza differente)
         this.inputNeurons = [];
-        for (let i = 0; i < numInputNeurons; i++) {
+        this.inputNeurons[0] = new Neuron(NeuronType.BIAS, 1);
+        for (let i = 1; i < numInputNeurons + 1; i++) {
             this.inputNeurons[i] = new Neuron(NeuronType.INPUT, 1);
         }
 
         this.hiddenNeurons = [];
-        for (let i = 0; i < numHiddenNeurons; i++) {
-            this.hiddenNeurons[i] = new Neuron(NeuronType.HIDDEN, numInputNeurons);
+        this.hiddenNeurons[0] = new Neuron(NeuronType.BIAS, 1);
+        for (let i = 1; i < numHiddenNeurons + 1; i++) {
+            this.hiddenNeurons[i] = new Neuron(NeuronType.HIDDEN, this.inputNeurons.length);
         }
 
         this.outputNeurons = [];
         for (let i = 0; i < numOutputNeurons; i++) {
-            this.outputNeurons[i] = new Neuron(NeuronType.OUTPUT, numHiddenNeurons);
+            this.outputNeurons[i] = new Neuron(NeuronType.OUTPUT, this.hiddenNeurons.length);
         }
     }
 
     predict(inputs) {
-        if (inputs.length != this.inputNeurons.length) {
+        //counting input bias neuron
+        if ((inputs.length + 1) != this.inputNeurons.length) {
             console.error(inputs, this.inputNeurons);
             throw 'inputs must have the same length as inputNeurons';
         }
+        let inputNeuronsResponses = [];
+        for (let i = 0; i < this.inputNeurons.length; i++) {
+            let scalarProduct = 0.0;
+            if (this.inputNeurons[i].neuronType == NeuronType.BIAS) {
+                if (i != 0) {
+                    console.error(this.inputNeurons[i], i);
+                    throw 'Input bias neuron must be at index 0';
+                }
+                scalarProduct = this.inputNeurons[i].calculateScalarProduct([]);
+            }
+            else {
+                scalarProduct = this.inputNeurons[i].calculateScalarProduct([inputs[i - 1]]);
+            }
+            inputNeuronsResponses[i] = sigmoidFunctionSingleNumber(scalarProduct);
+        }
+
         let hiddenNeuronsResponses = [];
         for (let i = 0; i < this.hiddenNeurons.length; i++) {
-            let scalarProduct = this.hiddenNeurons[i].calculateScalarProduct(inputs);
+            let scalarProduct = 0.0;
+            if (this.hiddenNeurons[i].neuronType == NeuronType.BIAS) {
+                if (i != 0) {
+                    console.error(this.hiddenNeurons[i], i);
+                    throw 'Hidden bias neuron must be at index 0';
+                }
+                scalarProduct = this.hiddenNeurons[i].calculateScalarProduct([]);
+            }
+            else {
+                scalarProduct = this.hiddenNeurons[i].calculateScalarProduct(inputNeuronsResponses);
+            }
             hiddenNeuronsResponses[i] = sigmoidFunctionSingleNumber(scalarProduct);
         }
         let outputs = [];
@@ -83,8 +112,9 @@ class Neuron {
         this.calculatedScalarProduct = 0.0;
         this.error = 0.0;
         this.receivedInputs = [];
+        this.neuronType = neuronType;
         //this.neuronType = neuronType;
-        if (neuronType == NeuronType.INPUT) {
+        if (neuronType == NeuronType.INPUT || neuronType == NeuronType.BIAS) {
             this.weigths = [1];
         }
         else {
@@ -97,6 +127,22 @@ class Neuron {
     //inputs are values calculated by neurons in the previous layer
     calculateScalarProduct(inputs) {
         this.receivedInputs = inputs;
+        if (this.neuronType == NeuronType.BIAS) {
+            if (inputs.length > 0) {
+                console.error(inputs);
+                throw 'Inputs length must be equal to 0 for bias neuron';
+            }
+            this.calculatedScalarProduct = 1
+            return this.calculatedScalarProduct;
+        }
+        if (this.neuronType == NeuronType.INPUT) {
+            if (inputs.length != 1) {
+                console.error(inputs);
+                throw 'Inputs length must be equal to 1 for input neuron';
+            }
+            this.calculatedScalarProduct = inputs[0];
+            return this.calculatedScalarProduct;
+        }
         if (inputs.length != this.weigths.length) {
             console.error(inputs, this.weigths);
             throw 'Inputs length must be equal to weigths length';
@@ -122,13 +168,15 @@ class Neuron {
     }
 
     modifyWeigthsBackpropagation() {
-        if (this.receivedInputs.length != this.weigths.length) {
-            console.error(this.receivedInputs, this.weigths);
-            throw 'receivedInputs length must be equal to weigths length';
-        }
-        for (let i = 0; i < this.receivedInputs.length; i++) {
-            //TODO: eta coefficient?
-            this.weigths[i] += this.error * derivativeSigmoidFunctionSingleNumber(this.calculatedScalarProduct) * this.receivedInputs[i];
+        if (this.neuronType != NeuronType.INPUT && this.neuronType != NeuronType.BIAS) {
+            if (this.receivedInputs.length != this.weigths.length) {
+                console.error(this.receivedInputs, this.weigths);
+                throw 'receivedInputs length must be equal to weigths length';
+            }
+            for (let i = 0; i < this.receivedInputs.length; i++) {
+                //TODO: eta coefficient?
+                this.weigths[i] += this.error * derivativeSigmoidFunctionSingleNumber(this.calculatedScalarProduct) * this.receivedInputs[i];
+            }
         }
     }
 }
@@ -136,5 +184,6 @@ class Neuron {
 let NeuronType = {
     INPUT: 0,
     HIDDEN: 1,
-    OUTPUT: 2
+    OUTPUT: 2,
+    BIAS: 3
 }

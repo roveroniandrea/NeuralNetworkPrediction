@@ -47,11 +47,14 @@
             <option value="10">Inputs are left shifted by 1 if less significant bit is 0, by 2 if it's 1</option>
         </select>
     </p>
-    <p>Train <input id="numTrainings" type="number" min="1" value="100000" step="1" /> times</p>
+    <p>Train <input id="numTrainings" type="number" min="1" value="10000" step="1" /> times</p>
     <button onclick="main()">Generate and train</button>
     <button onclick="randomInput()">Test with random input (no training)</button>
     <p id="errorMessage" style="color: red;"></p>
     <ul id="randomInput"></ul>
+    <p>Multi Layer learning graph (x -> training complete percentage (0% - 100%), y -> learning percentage (0% - 100%)): <button onclick="clearCanvas()">Clear</button>
+    </p>
+    <canvas id="precisionCanvas" width="400" height="100" style="border:1px solid #d3d3d3;"></canvas>
     <pre id="multiLayerPrecision"></pre>
     <table id="tableWeigths">
     </table>
