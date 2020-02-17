@@ -9,7 +9,8 @@ const rules = {
     PING_PONG_INPUT: 7,
     CONCATENATED_OR_GATE: 8,
     SUM_HALF_INPUTS: 9,
-    BITSHIF_LEFT: 10
+    BITSHIF_LEFT: 10,
+    DIGIT_RECOGNITION: 11
 }
 
 function generateRandomInput(length, rule) {

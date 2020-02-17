@@ -26,10 +26,18 @@
         The SLP works by adjusting the weigths between input neurons and output neurons
 <b>Multi Layer Perceptron:</b> it's a SLP with some hidden neurons between input and output layers.
     In this project, the MLP has revealed very more powerful the SLP. Recommended hidden layer count is 8-10
+
+    (For 2 hidden layer performing worst then 1)
+    With equal training parameters (number of iterations, batch size, choice of optimizer), this is indeed expected.
+    The reason lies in back-propagation. The speed at which each layer learns is slower the further away it is from the output layer.
+    If you add a layer, you slow down learning significantly in the earlier layers,
+    which you can compensate for by being more aggressive with the training parameters.
     </pre>
     <p>Number of inputs: <input id="numInputs" type="number" min="1" value="2" step="1" /></p>
-    <p>Number of hidden neurons (only affects Multi Layer Perceptron): <input id="numHiddenNeurons" type="number"
-            min="1" value="3" step="1" /></p>
+    <p>Number of hidden layers (only affects Multi Layer Perceptron): <input id="numHiddenLayers" type="number" min="1"
+            value="2" step="1" /></p>
+    <p>Number of hidden neurons for layer (only affects Multi Layer Perceptron): <input id="numHiddenNeurons"
+            type="number" min="1" value="3" step="1" /></p>
     <p id="numOutputs">Number of outputs: 0</p>
     <p>Select rule to predict:
         <select id="selectRule">
@@ -45,13 +53,25 @@
             <option value="9">Output is the sum of first half inputs and last half inputs treated as unsigned binary
                 numbers (low precision for SLP)</option>
             <option value="10">Inputs are left shifted by 1 if less significant bit is 0, by 2 if it's 1</option>
+            <option value="11">Digit recognition</option>
         </select>
     </p>
-    <p>Train <input id="numTrainings" type="number" min="1" value="100000" step="1" /> times</p>
+    <p>Train <input id="numTrainings" type="number" min="1" value="10000" step="1" /> times</p>
     <button onclick="main()">Generate and train</button>
     <button onclick="randomInput()">Test with random input (no training)</button>
+    <a id="downloadAnchorElem" style="display:none"></a>
+    <button onclick="downloadNetwork()">Download trained network as JSON</button>
+    <p>Upload a trained network if you want:
+        <input type="file" id="uploadNetwork" value="Import" />
+        <button onclick="networkUploaded()">Confirm import</button>
+    </p>
+
     <p id="errorMessage" style="color: red;"></p>
     <ul id="randomInput"></ul>
+    <p>Multi Layer learning graph (x -> training complete percentage (0% - 100%), y -> learning percentage (0% - 100%)):
+        <button onclick="clearCanvas()">Clear</button>
+    </p>
+    <canvas id="precisionCanvas" width="400" height="100" style="border:1px solid #d3d3d3;"></canvas>
     <pre id="multiLayerPrecision"></pre>
     <table id="tableWeigths">
     </table>

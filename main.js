@@ -40,14 +40,50 @@ function main() {
         previousNetwork = neuralNetwork;
     }
     else {
-        let numberHiddenNeurons = parseInt(document.querySelector('#numHiddenNeurons').value);
-        let multiLayerInfos = multiLayer(numberInputNeurons, numberHiddenNeurons, numberOutputNeurons, currentRule, numTrainings, true);
+        let numberHiddenNeuronsForLayer = parseInt(document.querySelector('#numHiddenNeurons').value);
 
+        /*
+        let multiLayerInfos = multiLayer(numberInputNeurons, numberHiddenNeurons, numberOutputNeurons, currentRule, numTrainings, true);
         console.log(multiLayerInfos);
         multiLayerPrecisionParagraph.innerHTML = 'Multi Layer Perceptron infos:\n\nPrecision: ' + multiLayerInfos.precision;
-        multiLayerPrecisionParagraph.innerHTML += '\n\nNeural network stringified (also printed in console):\n' + JSON.stringify(multiLayerInfos.neuralNetwork, null, ' ');
-
         previousNetwork = multiLayerInfos.neuralNetwork;
+        */
+        let numHiddenLayers = parseInt(document.querySelector('#numHiddenLayers').value);
+        let hiddenNeurons = [];
+        for (let i = 0; i < numHiddenLayers; i++) {
+            hiddenNeurons[i] = numberHiddenNeuronsForLayer + i;
+        }
+        multiLayerPrecisionParagraph.innerHTML = 'The network is training... please see console for cycles completion';
+        multiLayerPromise(numberInputNeurons, hiddenNeurons, numberOutputNeurons, currentRule, numTrainings, true)
+            .then(multiLayerInfos => {
+                console.log(multiLayerInfos);
+                multiLayerPrecisionParagraph.innerHTML = 'Multi Layer Perceptron infos:\n\nPrecision: ' + multiLayerInfos.precision;
+                //multiLayerPrecisionParagraph.innerHTML += '\n\nNeural network stringified (also printed in console):\n' + JSON.stringify(multiLayerInfos.neuralNetwork, null, ' ');
+
+                previousNetwork = multiLayerInfos.neuralNetwork;
+
+                if (multiLayerInfos.precisionCurve != null) {
+                    let canvas = document.querySelector("#precisionCanvas");
+                    let ctx = canvas.getContext("2d");
+                    let step = canvas.width / multiLayerInfos.precisionCurve.length;
+                    let height = canvas.height;
+                    let r = Math.random() * 200 + 20;
+                    let g = Math.random() * 200 + 20;
+                    let b = Math.random() * 200 + 20;
+                    ctx.beginPath();
+                    ctx.strokeStyle = 'rgb(' + r + ', ' + g + ', ' + b + ')';
+                    for (let i = 0; i < multiLayerInfos.precisionCurve.length; i++) {
+                        if (i == 0) {
+                            ctx.moveTo(0, height / 2.0);
+                        }
+                        else {
+                            ctx.moveTo((i - 1) * step, height - multiLayerInfos.precisionCurve[i - 1]);
+                        }
+                        ctx.lineTo(i * step, height - multiLayerInfos.precisionCurve[i]);
+                        ctx.stroke();
+                    }
+                }
+            });
     }
 
     previousRule = currentRule;
@@ -111,11 +147,12 @@ function randomInput() {
         return null;
     }
     let inputLength = 0;
-    if(previousNetworkType == NetworkType.SINGLE_LAYER_PERCEPTRON){
+    if (previousNetworkType == NetworkType.SINGLE_LAYER_PERCEPTRON) {
         inputLength = previousNetwork.inputWeigths[0].length;
     }
-    else{
-        inputLength = previousNetwork.inputNeurons.length;
+    else {
+        //counting bias neuron
+        inputLength = previousNetwork.inputNeurons.length - 1;
     }
 
     let inputAndExpected = generateRandomInput(inputLength, previousRule);
@@ -148,4 +185,55 @@ function randomInput() {
 let NetworkType = {
     SINGLE_LAYER_PERCEPTRON: 0,
     MULTI_LAYER_PERCEPTRON: 1
+}
+
+function clearCanvas() {
+    let canvas = document.querySelector("#precisionCanvas");
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function downloadNetwork() {
+    if (previousNetwork == null || previousRule == null) {
+        let errorMessage = document.querySelector('#errorMessage');
+        errorMessage.innerHTML = 'Please train a neural network first';
+        return null;
+    }
+
+    let objectToDownload = {
+        neuralNetwork: previousNetwork,
+        networkType: previousNetworkType,
+        rule: previousRule
+    }
+    let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(objectToDownload));
+    let dlAnchorElem = document.querySelector('#downloadAnchorElem');
+    dlAnchorElem.setAttribute("href", dataStr);
+    dlAnchorElem.setAttribute("download", "NeuralNetwork.json");
+    document.body.appendChild(dlAnchorElem);
+    dlAnchorElem.click();
+}
+
+function networkUploaded() {
+    let files = document.querySelector('#uploadNetwork').files;
+    if (files.length <= 0) {
+        console.error('No files uploaded');
+        return false;
+    }
+
+    var fr = new FileReader();
+
+    fr.onload = function (e) {
+        let result = JSON.parse(e.target.result);
+        previousRule = result.rule;
+        previousNetworkType = result.networkType;
+        if(previousNetworkType == 0){
+            console.error('TODO:');
+        }
+        else{
+            previousNetwork = new MultiLayerNetwork(0,0,0);
+            previousNetwork.fromJson(result.neuralNetwork);
+        }
+        console.log('Network uploaded: ', result);
+    }
+
+    fr.readAsText(files.item(0));
 }
