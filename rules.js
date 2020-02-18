@@ -13,6 +13,8 @@ const rules = {
     DIGIT_RECOGNITION: 11
 }
 
+let digitRecInputs = [];
+
 function generateRandomInput(length, rule) {
     switch (rule) {
         case rules.FIRST_BIT: {
@@ -143,19 +145,19 @@ function generateRandomInput(length, rule) {
                 expected: fromDecToBinArray(expectedDecimal, (input.length / 2) + 1)
             }
         }
-        case rules.BITSHIF_LEFT:{
+        case rules.BITSHIF_LEFT: {
             let input = [];
             let expected = [];
             for (let i = 0; i < length; i++) {
                 input[i] = Math.random() < 0.5 ? 0 : 1;
                 expected[i] = input[i];
             }
-            if(input[input.length - 1] == 1){
+            if (input[input.length - 1] == 1) {
                 //bitshift of 2
                 expected[expected.length] = 0;
                 expected[expected.length] = 0;
             }
-            else{
+            else {
                 //bitshift of 1
                 expected.unshift([0]);
                 expected[expected.length] = 0;
@@ -165,6 +167,13 @@ function generateRandomInput(length, rule) {
                 input: input,
                 expected: expected
             };
+        }
+        case rules.DIGIT_RECOGNITION: {
+            let index = Math.floor(Math.random() * digitRecInputs.length);
+            return {
+                input: digitRecInputs[index].digit,
+                expected: digitRecInputs[index].expected
+            }
         }
         default: {
             throw 'Rule generation not implemented';
@@ -209,8 +218,32 @@ function assignAndValidateRule(value, numberInputNeurons) {
             if (numberInputNeurons % 2 == 1) { throw 'Input neurons must be pair' }
             return rules.SUM_HALF_INPUTS;
         }
-        case rules.BITSHIF_LEFT:{
+        case rules.BITSHIF_LEFT: {
             return rules.BITSHIF_LEFT;
+        }
+        case rules.DIGIT_RECOGNITION: {
+            if (numberInputNeurons != 400) { throw 'Input neurons must be exactly 400' }
+            var img = document.getElementById('digitsImage');
+            var canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
+            for (let y = 0; y < img.height; y += 20) {
+                for (let x = 0; x < img.width; x += 20) {
+                    var pixelData = canvas.getContext('2d').getImageData(x, y, 20, 20).data;
+                    let digit = [];
+                    for (let k = 0; k < pixelData.length; k += 4) {
+                        let grey = (pixelData[k] + pixelData[k + 1] + pixelData[k + 2]) / (3 * 255);
+                        digit[k / 4] = grey;
+                    }
+                    digitRecInputs[digitRecInputs.length] = {
+                        digit: digit,
+                        expected: [(Math.floor(y / (20 * 5))) / 9]
+                    }
+                }
+            }
+            //console.log(digitRecInputs);
+            return rules.DIGIT_RECOGNITION;
         }
         default: {
             throw 'Rule validation not implemented';
@@ -247,11 +280,14 @@ function correctNumberOfOutputs(rule, numberInputNeurons) {
         case rules.CONCATENATED_OR_GATE: {
             return 1;
         }
-        case rules.SUM_HALF_INPUTS:{
+        case rules.SUM_HALF_INPUTS: {
             return (numberInputNeurons / 2) + 1;
         }
-        case rules.BITSHIF_LEFT:{
+        case rules.BITSHIF_LEFT: {
             return numberInputNeurons + 2;
+        }
+        case rules.DIGIT_RECOGNITION: {
+            return 1;
         }
         default: {
             throw 'Output setting not implemented';
