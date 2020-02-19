@@ -17,8 +17,8 @@
 <body>
     <p>Neural network type:
         <select id="networkType">
-            <option value="0">Single Layer Perceptron (no hidden neurons)</option>
             <option value="1">Multi Layer Perceptron (one layer of hidden neurons)</option>
+            <option value="0">Single Layer Perceptron (no hidden neurons)</option>
         </select>
     </p>
     <pre><b>Single Layer Perceptron:</b> this is the simplest neural network.
@@ -82,6 +82,8 @@
     <button onclick="clearDigitCanvas()">Clear canvas</button>
     <button onclick="testWithCanvasDigit()">Test network with draw</button>
     <button onclick="debugImageSlice()">Debug image slice</button>
+    <button onclick="overfittingDigitRecognition()">Test overfitting and underfitting for digit recognition</button>
+    <p id="overfittingResults"></p>
     <img id="digitsImage" src="digits.png"/>
 </body>
 <style>

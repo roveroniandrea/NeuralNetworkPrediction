@@ -24,6 +24,7 @@ function main() {
     let multiLayerPrecisionParagraph = document.querySelector('#multiLayerPrecision');
     multiLayerPrecisionParagraph.innerHTML = '';
     clearTable();
+    document.querySelector('#overfittingResults').innerHTML = '';
 
     let networkType = document.querySelector('#networkType').value;
     if (networkType == NetworkType.SINGLE_LAYER_PERCEPTRON) {
@@ -316,7 +317,6 @@ function testWithCanvasDigit() {
 
 function debugImageSlice() {
     let inputAndExpected = generateRandomInput(400, rules.DIGIT_RECOGNITION);
-    console.log(inputAndExpected.input);
     for (let x = 0; x < inputAndExpected.input.length; x++) {
         digitCanvasContext.fillStyle = 'rgb(' + inputAndExpected.input[x] * 255 + ',' + inputAndExpected.input[x] * 255 + ',' + inputAndExpected.input[x] * 255 + ')';
         digitCanvasContext.fillRect((x % 20) * 20, (Math.floor(x / 20)) * 20, 20, 20);
@@ -330,4 +330,48 @@ function debugImageSlice() {
         }
     }
     console.log(recognised, inputAndExpected.expected);
+}
+
+function overfittingDigitRecognition() {
+    if (previousNetwork != null && previousNetworkType == NetworkType.MULTI_LAYER_PERCEPTRON && previousRule == rules.DIGIT_RECOGNITION) {
+        let trainingSetErrors = 0.0;
+        let validationSetErrors = 0.0;
+        let numberOfTests = 1000;
+        for (let t = 0; t < 2; t++) {
+            for (let i = 0; i < numberOfTests; i++) {
+                let inputAndExpected = (() => {
+                    if (t == 0) {
+                        return generateRandomInput(previousNetwork.inputNeurons.length - 1, previousRule);
+                    }
+                    else {
+                        let chosenValidationInput = digitRecValidationSet[Math.floor(Math.random() * digitRecValidationSet.length)];
+                        return {
+                            input: chosenValidationInput.digit,
+                            expected: chosenValidationInput.expected
+                        }
+                    }
+                })()
+                predicted = previousNetwork.predict(inputAndExpected.input);
+                let errors = calculateErrors(inputAndExpected.expected, predicted);
+                let localErrors = 0.0;
+                for (let j = 0; j < errors.length; j++) {
+                    localErrors += Math.abs(errors[j]);
+                }
+                localErrors /= errors.length;
+                if (t == 0) { trainingSetErrors += localErrors; }
+                else { validationSetErrors += localErrors; }
+            }
+
+        }
+        let trainingSetPrecision = (1 - trainingSetErrors / numberOfTests) * 100;
+        let validationSetPrecision = (1 - validationSetErrors / numberOfTests) * 100;
+        trainingSetPrecision = arrayStringifyToFixed([trainingSetPrecision]);
+        validationSetPrecision = arrayStringifyToFixed([validationSetPrecision]);
+        document.querySelector('#overfittingResults').innerHTML = 'Training set precision: ' + trainingSetPrecision + '%, validation set precision: ' + validationSetPrecision + '%';
+    }
+    else{
+        let errorMessage = document.querySelector('#errorMessage');
+        errorMessage.innerHTML = 'Please train a neural network first';
+        return null;
+    }
 }

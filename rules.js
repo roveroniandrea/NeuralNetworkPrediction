@@ -13,7 +13,10 @@ const rules = {
     DIGIT_RECOGNITION: 11
 }
 
-let digitRecInputs = [];
+let digitRecTrainingSet = [];
+let digitRecValidationSet = [];
+let xPercentageTraining = 0.7;
+
 window.addEventListener('load', () => {
     var img = document.getElementById('digitsImage');
     var canvas = document.createElement('canvas');
@@ -32,11 +35,18 @@ window.addEventListener('load', () => {
             for (let i = 0; i < 10; i++) {
                 expected[i] = (i == Math.floor(y / (20 * 5))) ? 1 : 0;
             }
-            digitRecInputs[digitRecInputs.length] = {
+            let input = {
                 digit: digit,
                 //expected: [(Math.floor(y / (20 * 5))) / 9]
                 //expected: fromDecToBinArray(Math.floor(y / (20 * 5)), 4)
                 expected: expected
+            }
+
+            if (x / img.width < xPercentageTraining) {
+                digitRecTrainingSet[digitRecTrainingSet.length] = input;
+            }
+            else {
+                digitRecValidationSet[digitRecValidationSet.length] = input;
             }
         }
     }
@@ -197,10 +207,10 @@ function generateRandomInput(length, rule) {
             };
         }
         case rules.DIGIT_RECOGNITION: {
-            let index = Math.floor(Math.random() * digitRecInputs.length);
+            let index = Math.floor(Math.random() * digitRecTrainingSet.length);
             return {
-                input: digitRecInputs[index].digit,
-                expected: digitRecInputs[index].expected
+                input: digitRecTrainingSet[index].digit,
+                expected: digitRecTrainingSet[index].expected
             }
         }
         default: {
