@@ -225,15 +225,109 @@ function networkUploaded() {
         let result = JSON.parse(e.target.result);
         previousRule = result.rule;
         previousNetworkType = result.networkType;
-        if(previousNetworkType == 0){
+        if (previousNetworkType == 0) {
             console.error('TODO:');
         }
-        else{
-            previousNetwork = new MultiLayerNetwork(0,0,0);
+        else {
+            previousNetwork = new MultiLayerNetwork(0, 0, 0);
             previousNetwork.fromJson(result.neuralNetwork);
         }
         console.log('Network uploaded: ', result);
     }
 
     fr.readAsText(files.item(0));
+}
+
+let digitCanvas = null;
+let digitCanvasContext = null;
+let isDrawingOnCanvas = false;
+window.addEventListener('load', () => {
+    digitCanvas = document.querySelector('#digitCanvas');
+    digitCanvasContext = digitCanvas.getContext('2d');
+    this.clearDigitCanvas();
+    digitCanvas.onmousedown = function (e) {
+        isDrawingOnCanvas = true;
+    }
+    digitCanvas.onmouseup = function (e) {
+        isDrawingOnCanvas = false;
+    }
+    digitCanvas.onmousemove = function (e) {
+        if (isDrawingOnCanvas) {
+            let rect = digitCanvas.getBoundingClientRect();
+            let mouseX = e.clientX - rect.left;
+            let mouseY = e.clientY - rect.top;
+            //get 20x20 rectangle
+            let rectX = Math.floor(mouseX / 20);
+            let rectY = Math.floor(mouseY / 20);
+            digitCanvasContext.fillStyle = 'rgb(255,255,255)';
+            digitCanvasContext.fillRect(rectX * 20, rectY * 20, 20, 20);
+        }
+    }
+});
+
+function clearDigitCanvas() {
+    digitCanvasContext.fillStyle = 'rgb(0,0,0)';
+    digitCanvasContext.fillRect(0, 0, digitCanvas.width, digitCanvas.height);
+    digitCanvasContext.fillStyle = 'rgb(255,0,0)';
+    digitCanvasContext.fillRect(190, 190, 20, 20);
+}
+
+function testWithCanvasDigit() {
+    if (previousNetwork == null) {
+        alert('Please train a neural network first');
+        return null;
+    }
+    if (previousRule != rules.DIGIT_RECOGNITION) {
+        alert('The neural network must be trained with digit recognition');
+        return null;
+    }
+
+    let inputs = [];
+    for (let y = 0; y < 20; y++) {
+        for (let x = 0; x < 20; x++) {
+            let pixelData = digitCanvas.getContext('2d').getImageData(x * 20, y * 20, 1, 1).data;
+            inputs[y * 20 + x] = (pixelData[0] + pixelData[1] + pixelData[2]) / (3 * 255);
+        }
+    }
+
+    let predicted = previousNetwork.predict(inputs);
+    let max = -1;
+    let guess1 = 0;
+    predicted.forEach((out, index) => {
+        if (out > max) {
+            guess1 = index;
+            max = out;
+        }
+    });
+    predicted = predicted.map((out, index) => (index != guess1) ? out : 0.0);
+
+    max = -1;
+    let guess2 = 0;
+    predicted.forEach((out, index) => {
+        if (out > max) {
+            guess2 = index;
+            max = out;
+        }
+    });
+
+
+    alert('Network recognised: ' + guess1 + ' second possibility: ' + guess2);
+}
+
+function debugImageSlice() {
+    let inputAndExpected = generateRandomInput(400, rules.DIGIT_RECOGNITION);
+    console.log(inputAndExpected.input);
+    for (let x = 0; x < inputAndExpected.input.length; x++) {
+        digitCanvasContext.fillStyle = 'rgb(' + inputAndExpected.input[x] * 255 + ',' + inputAndExpected.input[x] * 255 + ',' + inputAndExpected.input[x] * 255 + ')';
+        digitCanvasContext.fillRect((x % 20) * 20, (Math.floor(x / 20)) * 20, 20, 20);
+    }
+    let recognised = -1;
+    let max = -1;
+    for (let i = 0; i < inputAndExpected.expected.length; i++) {
+        if (inputAndExpected.expected[i] > max) {
+            max = inputAndExpected.expected[i];
+            recognised = i;
+        }
+    }
+    console.log(recognised, inputAndExpected.expected);
 }

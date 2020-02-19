@@ -76,7 +76,13 @@
     <table id="tableWeigths">
     </table>
 
-    <p>Digit recognition training: </p><img id="digitsImage" src="digits.png"/>
+    <p>Digit recognition training: </p>
+    <canvas id="digitCanvas" width="400" height="400"></canvas>
+    <br>
+    <button onclick="clearDigitCanvas()">Clear canvas</button>
+    <button onclick="testWithCanvasDigit()">Test network with draw</button>
+    <button onclick="debugImageSlice()">Debug image slice</button>
+    <img id="digitsImage" src="digits.png"/>
 </body>
 <style>
     table {

@@ -14,6 +14,34 @@ const rules = {
 }
 
 let digitRecInputs = [];
+window.addEventListener('load', () => {
+    var img = document.getElementById('digitsImage');
+    var canvas = document.createElement('canvas');
+    canvas.width = img.width;
+    canvas.height = img.height;
+    canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
+    for (let y = 0; y < img.height; y += 20) {
+        for (let x = 0; x < img.width; x += 20) {
+            var pixelData = canvas.getContext('2d').getImageData(x, y, 20, 20).data;
+            let digit = [];
+            for (let k = 0; k < pixelData.length; k += 4) {
+                let grey = Math.round((pixelData[k] + pixelData[k + 1] + pixelData[k + 2]) / (3 * 255));
+                digit[k / 4] = grey;
+            }
+            let expected = [];
+            for (let i = 0; i < 10; i++) {
+                expected[i] = (i == Math.floor(y / (20 * 5))) ? 1 : 0;
+            }
+            digitRecInputs[digitRecInputs.length] = {
+                digit: digit,
+                //expected: [(Math.floor(y / (20 * 5))) / 9]
+                //expected: fromDecToBinArray(Math.floor(y / (20 * 5)), 4)
+                expected: expected
+            }
+        }
+    }
+    //console.log(digitRecInputs);
+});
 
 function generateRandomInput(length, rule) {
     switch (rule) {
@@ -223,26 +251,6 @@ function assignAndValidateRule(value, numberInputNeurons) {
         }
         case rules.DIGIT_RECOGNITION: {
             if (numberInputNeurons != 400) { throw 'Input neurons must be exactly 400' }
-            var img = document.getElementById('digitsImage');
-            var canvas = document.createElement('canvas');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            canvas.getContext('2d').drawImage(img, 0, 0, img.width, img.height);
-            for (let y = 0; y < img.height; y += 20) {
-                for (let x = 0; x < img.width; x += 20) {
-                    var pixelData = canvas.getContext('2d').getImageData(x, y, 20, 20).data;
-                    let digit = [];
-                    for (let k = 0; k < pixelData.length; k += 4) {
-                        let grey = (pixelData[k] + pixelData[k + 1] + pixelData[k + 2]) / (3 * 255);
-                        digit[k / 4] = grey;
-                    }
-                    digitRecInputs[digitRecInputs.length] = {
-                        digit: digit,
-                        expected: [(Math.floor(y / (20 * 5))) / 9]
-                    }
-                }
-            }
-            //console.log(digitRecInputs);
             return rules.DIGIT_RECOGNITION;
         }
         default: {
@@ -287,7 +295,9 @@ function correctNumberOfOutputs(rule, numberInputNeurons) {
             return numberInputNeurons + 2;
         }
         case rules.DIGIT_RECOGNITION: {
-            return 1;
+            //return 1;
+            //return 4;
+            return 10;
         }
         default: {
             throw 'Output setting not implemented';

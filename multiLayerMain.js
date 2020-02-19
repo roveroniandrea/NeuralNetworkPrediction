@@ -28,11 +28,9 @@ function multiLayerPromise(numberInputNeurons, hiddenNeurons, numberOutputNeuron
         let trainingsDone = 0;
         let cycle = 1;
         let precisionCurve = [];
-        let precisionForCycle = [];
         let lastStampedInfo = Date.now();
         let interval = setInterval(() => {
             let startTime = Date.now();
-            let errorsForThisCycle = 0.0;
             for (let training = 0; training < trainingPerCycles && (trainingsDone <= numTrainings); training++) {
                 let inputAndExpected = generateRandomInput(numberInputNeurons, currentRule);
                 let prediction = multiLayerNetwork.predict(inputAndExpected.input);
@@ -43,15 +41,17 @@ function multiLayerPromise(numberInputNeurons, hiddenNeurons, numberOutputNeuron
                     localErrors += Math.abs(errors[j]);
                 }
                 totalErrors += localErrors / errors.length;
-                errorsForThisCycle += localErrors / errors.length;
 
                 if (trainYN) {
                     multiLayerNetwork.backpropagationCompleate(errors);
                 }
                 trainingsDone++;
             }
-            precisionForCycle[cycle - 1] = ((1 - errorsForThisCycle / trainingPerCycles) * 100);
-            precisionCurve[cycle - 1] = ((1 - totalErrors / trainingsDone) * 100);
+            precisionCurve[precisionCurve.length] = ((1 - totalErrors / trainingsDone) * 100);
+            if(precisionCurve.length > 10000){
+                precisionCurve.shift();
+            }
+
             let millisToExecute = Date.now() - startTime;
             if (cycle >= totalCycles) {
                 console.log('Done! Calculation speedup: ' + (initialSecondsExpected * 1000) / (Date.now() - startedCalculationAt));
@@ -60,8 +60,7 @@ function multiLayerPromise(numberInputNeurons, hiddenNeurons, numberOutputNeuron
                 resolve({
                     neuralNetwork: multiLayerNetwork,
                     precision: ((1 - totalErrors) * 100),
-                    precisionCurve: precisionCurve,
-                    //precisionCurve: precisionForCycle
+                    precisionCurve: precisionCurve
                 });
             }
             else {
